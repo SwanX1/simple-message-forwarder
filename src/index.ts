@@ -59,7 +59,7 @@ void (async function main() {
           // content: `From **${message.author.username}**:\n` + (message.content ?? ""),
           content: message.content,
           embeds: message.embeds,
-          attachments: message.attachments.map(a => a),
+          files: message.attachments.map(a => a),
           avatarURL: message.author.avatarURL() ?? undefined,
           username: message.author.username,
         };
