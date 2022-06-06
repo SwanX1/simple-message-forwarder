@@ -1,0 +1,8 @@
+{
+  "forwarding": [
+    {
+      "from": "some_channel_id",
+      "to": "some_channel_id"
+    }
+  ]
+}
