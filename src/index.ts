@@ -1,7 +1,7 @@
 import chalk from "chalk";
-import { GuildBasedChannel, MessageOptions, WebhookMessageOptions } from "discord.js";
+import { GuildBasedChannel, WebhookMessageOptions } from "discord.js";
 import dotenv from "dotenv";
-import { createWriteStream, ensureFile, readFile, readJSON } from "fs-extra";
+import { createWriteStream, ensureFile, readJSON } from "fs-extra";
 import { coloredLog, getLoggerLevelName, Logger, LoggerLevel } from "logerian";
 import { cpus, totalmem } from "os";
 import path from "path";
@@ -38,7 +38,7 @@ void (async function main() {
   logger.info(chalk`Memory\t{yellow ${formatBytes(totalmem())}}`);
 
   logger.info("Loading config...");
-  const config: { forwarding: { from: string; to: string; }[] } = await readJSON(path.join(__dirname, "../config.json"));
+  const config: { forwarding: { from: string; to: string }[] } = await readJSON(path.join(__dirname, "../config.json"));
   const forwardingMap: Map<string, string[]> = new Map();
   for (const { from, to } of config.forwarding) {
     const tos = forwardingMap.get(from) || [];
@@ -65,7 +65,7 @@ void (async function main() {
         };
 
         for (const to of tos) {
-          const channel = await client.channels.fetch(to) as GuildBasedChannel;
+          const channel = (await client.channels.fetch(to)) as GuildBasedChannel;
           if (channel && (channel as GuildBasedChannel).guild && channel.isText() && !channel.isThread()) {
             let webhooks;
             try {
@@ -77,17 +77,25 @@ void (async function main() {
             let webhook = webhooks.find(w => w.owner?.id === client.user?.id);
             if (!webhook) {
               logger.info(chalk`Couldn't find webhook for {yellow ${channel.id}}, creating new one`);
-              try {``
-                webhook = await channel.createWebhook(client.user?.username + "'s forwarded messages", { avatar: client.user?.displayAvatarURL() });
+              try {
+                ``;
+                webhook = await channel.createWebhook(client.user?.username + "'s forwarded messages", {
+                  avatar: client.user?.displayAvatarURL(),
+                });
               } catch (e) {
                 logger.warn(chalk`Couldn't create webhook for {yellow ${channel.id}}`, e);
                 continue;
               }
             }
             logger.info(chalk`Forwarding message from {yellow ${message.channel.id}} to {yellow ${to}}`);
-            webhook.send(forwardedMessage)
+            webhook
+              .send(forwardedMessage)
               .then(() => logger.info(chalk`Forwarded message from {yellow ${message.channel.id}} to {yellow ${to}}`))
-              .catch(e => logger.warn(chalk`Failed to forward message from {yellow ${message.channel.id}} to {yellow ${to}}: ${e}`));
+              .catch(e =>
+                logger.warn(
+                  chalk`Failed to forward message from {yellow ${message.channel.id}} to {yellow ${to}}: ${e}`
+                )
+              );
           }
         }
       }
