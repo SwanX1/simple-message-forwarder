@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { GuildBasedChannel, MessageOptions, WebhookMessageOptions } from "discord.js";
 import dotenv from "dotenv";
-import { createWriteStream, ensureFile, readFile } from "fs-extra";
+import { createWriteStream, ensureFile, readFile, readJSON } from "fs-extra";
 import { coloredLog, getLoggerLevelName, Logger, LoggerLevel } from "logerian";
 import { cpus, totalmem } from "os";
 import path from "path";
@@ -38,7 +38,7 @@ void (async function main() {
   logger.info(chalk`Memory\t{yellow ${formatBytes(totalmem())}}`);
 
   logger.info("Loading config...");
-  const config: { forwarding: { from: string; to: string; }[] } = JSON.parse((await readFile(path.join(__dirname, "../config.json"))).toString());
+  const config: { forwarding: { from: string; to: string; }[] } = await readJSON(path.join(__dirname, "../config.json"));
   const forwardingMap: Map<string, string[]> = new Map();
   for (const { from, to } of config.forwarding) {
     const tos = forwardingMap.get(from) || [];
