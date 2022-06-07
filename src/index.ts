@@ -56,12 +56,14 @@ void (async function main() {
       const tos = forwardingMap.get(message.channel.id);
       if (tos) {
         const forwardedMessage: WebhookMessageOptions = {
-          // content: `From **${message.author.username}**:\n` + (message.content ?? ""),
           content: message.content,
           embeds: message.embeds,
           files: message.attachments.map(a => a),
           avatarURL: message.author.avatarURL() ?? undefined,
           username: message.author.username,
+          allowedMentions: {
+            parse: [],
+          },
         };
 
         for (const to of tos) {
